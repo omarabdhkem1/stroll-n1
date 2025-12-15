@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>روابطي - Link Collection</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Profile Section -->
+        <div class="profile-section">
+            <div class="profile-image">
+                <img src="https://via.placeholder.com/120" alt="Profile Picture" id="profileImg">
+            </div>
+            <h1 class="profile-name" id="profileName">اسم القناة</h1>
+            <p class="profile-bio" id="profileBio">مرحباً! هذه صفحة روابطي الخاصة</p>
+        </div>
+
+        <!-- Links Section -->
+        <div class="links-section" id="linksContainer">
+            <!-- Links will be dynamically added here -->
+            <a href="https://youtube.com" class="link-card" target="_blank">
+                <span class="link-icon">🎥</span>
+                <span class="link-text">قناتي على يوتيوب</span>
+            </a>
+            
+            <a href="https://instagram.com" class="link-card" target="_blank">
+                <span class="link-icon">📸</span>
+                <span class="link-text">إنستغرام</span>
+            </a>
+            
+            <a href="https://twitter.com" class="link-card" target="_blank">
+                <span class="link-icon">🐦</span>
+                <span class="link-text">تويتر</span>
+            </a>
+            
+            <a href="https://facebook.com" class="link-card" target="_blank">
+                <span class="link-icon">📘</span>
+                <span class="link-text">فيسبوك</span>
+            </a>
+            
+            <a href="#" class="link-card" target="_blank">
+                <span class="link-icon">🌐</span>
+                <span class="link-text">موقعي الإلكتروني</span>
+            </a>
+            
+            <a href="#" class="link-card" target="_blank">
+                <span class="link-icon">📧</span>
+                <span class="link-text">البريد الإلكتروني</span>
+            </a>
+        </div>
+
+        <!-- Admin Panel Toggle -->
+        <button class="admin-toggle" onclick="toggleAdmin()">⚙️ تعديل</button>
+
+        <!-- Admin Panel (Hidden by default) -->
+        <div class="admin-panel" id="adminPanel">
+            <h2>لوحة التحكم</h2>
+            
+            <div class="admin-section">
+                <h3>معلومات الملف الشخصي</h3>
+                <input type="text" id="nameInput" placeholder="اسم القناة" value="اسم القناة">
+                <input type="text" id="bioInput" placeholder="الوصف" value="مرحباً! هذه صفحة روابطي الخاصة">
+                <input type="text" id="imageInput" placeholder="رابط الصورة" value="https://via.placeholder.com/120">
+            </div>
+
+            <div class="admin-section">
+                <h3>إضافة رابط جديد</h3>
+                <input type="text" id="linkIcon" placeholder="أيقونة (إيموجي)" value="🔗">
+                <input type="text" id="linkText" placeholder="نص الرابط">
+                <input type="url" id="linkUrl" placeholder="https://example.com">
+                <button onclick="addLink()">إضافة رابط</button>
+            </div>
+
+            <div class="admin-section">
+                <h3>الروابط الحالية</h3>
+                <div id="linksList"></div>
+            </div>
+
+            <div class="admin-section">
+                <button onclick="saveChanges()" class="save-btn">حفظ التغييرات</button>
+                <button onclick="toggleAdmin()" class="cancel-btn">إلغاء</button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>صُنع بـ ❤️ للمبدعين العرب</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
