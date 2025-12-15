@@ -1,18 +1,69 @@
-// Initialize data from localStorage or use defaults
-let profileData = JSON.parse(localStorage.getItem('profileData')) || {
-    name: 'اسم القناة',
-    bio: 'مرحباً! هذه صفحة روابطي الخاصة',
-    image: 'https://via.placeholder.com/120'
-};
+// Security: Sanitize text to prevent XSS
+function sanitizeText(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 
-let linksData = JSON.parse(localStorage.getItem('linksData')) || [
-    { icon: '🎥', text: 'قناتي على يوتيوب', url: 'https://youtube.com' },
-    { icon: '📸', text: 'إنستغرام', url: 'https://instagram.com' },
-    { icon: '🐦', text: 'تويتر', url: 'https://twitter.com' },
-    { icon: '📘', text: 'فيسبوك', url: 'https://facebook.com' },
-    { icon: '🌐', text: 'موقعي الإلكتروني', url: '#' },
-    { icon: '📧', text: 'البريد الإلكتروني', url: '#' }
-];
+// Security: Validate and sanitize URLs
+function isValidUrl(url) {
+    try {
+        const urlObj = new URL(url);
+        return urlObj.protocol === 'http:' || urlObj.protocol === 'https:' || url === '#';
+    } catch (e) {
+        return url === '#';
+    }
+}
+
+function sanitizeUrl(url) {
+    if (url === '#') return '#';
+    try {
+        const urlObj = new URL(url);
+        if (urlObj.protocol === 'http:' || urlObj.protocol === 'https:') {
+            return urlObj.href;
+        }
+    } catch (e) {
+        // Invalid URL
+    }
+    return '#';
+}
+
+// Initialize data from localStorage or use defaults
+let profileData;
+try {
+    profileData = JSON.parse(localStorage.getItem('profileData')) || {
+        name: 'اسم القناة',
+        bio: 'مرحباً! هذه صفحة روابطي الخاصة',
+        image: 'https://via.placeholder.com/120'
+    };
+} catch (e) {
+    profileData = {
+        name: 'اسم القناة',
+        bio: 'مرحباً! هذه صفحة روابطي الخاصة',
+        image: 'https://via.placeholder.com/120'
+    };
+}
+
+let linksData;
+try {
+    linksData = JSON.parse(localStorage.getItem('linksData')) || [
+        { icon: '🎥', text: 'قناتي على يوتيوب', url: 'https://youtube.com' },
+        { icon: '📸', text: 'إنستغرام', url: 'https://instagram.com' },
+        { icon: '🐦', text: 'تويتر', url: 'https://twitter.com' },
+        { icon: '📘', text: 'فيسبوك', url: 'https://facebook.com' },
+        { icon: '🌐', text: 'موقعي الإلكتروني', url: '#' },
+        { icon: '📧', text: 'البريد الإلكتروني', url: '#' }
+    ];
+} catch (e) {
+    linksData = [
+        { icon: '🎥', text: 'قناتي على يوتيوب', url: 'https://youtube.com' },
+        { icon: '📸', text: 'إنستغرام', url: 'https://instagram.com' },
+        { icon: '🐦', text: 'تويتر', url: 'https://twitter.com' },
+        { icon: '📘', text: 'فيسبوك', url: 'https://facebook.com' },
+        { icon: '🌐', text: 'موقعي الإلكتروني', url: '#' },
+        { icon: '📧', text: 'البريد الإلكتروني', url: '#' }
+    ];
+}
 
 // Load data on page load
 window.addEventListener('DOMContentLoaded', () => {
@@ -59,12 +110,20 @@ function loadLinks() {
     linksData.forEach(link => {
         const linkCard = document.createElement('a');
         linkCard.className = 'link-card';
-        linkCard.href = link.url;
+        linkCard.href = sanitizeUrl(link.url);
         linkCard.target = '_blank';
-        linkCard.innerHTML = `
-            <span class="link-icon">${link.icon}</span>
-            <span class="link-text">${link.text}</span>
-        `;
+        linkCard.rel = 'noopener noreferrer';
+        
+        const iconSpan = document.createElement('span');
+        iconSpan.className = 'link-icon';
+        iconSpan.textContent = link.icon;
+        
+        const textSpan = document.createElement('span');
+        textSpan.className = 'link-text';
+        textSpan.textContent = link.text;
+        
+        linkCard.appendChild(iconSpan);
+        linkCard.appendChild(textSpan);
         container.appendChild(linkCard);
     });
 }
@@ -84,13 +143,26 @@ function updateLinksList() {
     linksData.forEach((link, index) => {
         const linkItem = document.createElement('div');
         linkItem.className = 'link-item';
-        linkItem.innerHTML = `
-            <div class="link-item-info">
-                <span style="font-size: 20px;">${link.icon}</span>
-                <span>${link.text}</span>
-            </div>
-            <button onclick="deleteLink(${index})">حذف</button>
-        `;
+        
+        const linkInfo = document.createElement('div');
+        linkInfo.className = 'link-item-info';
+        
+        const iconSpan = document.createElement('span');
+        iconSpan.style.fontSize = '20px';
+        iconSpan.textContent = link.icon;
+        
+        const textSpan = document.createElement('span');
+        textSpan.textContent = link.text;
+        
+        linkInfo.appendChild(iconSpan);
+        linkInfo.appendChild(textSpan);
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = 'حذف';
+        deleteBtn.addEventListener('click', () => deleteLink(index));
+        
+        linkItem.appendChild(linkInfo);
+        linkItem.appendChild(deleteBtn);
         linksList.appendChild(linkItem);
     });
 }
@@ -106,10 +178,21 @@ function addLink() {
         return;
     }
     
+    // Validate URL
+    if (!isValidUrl(url)) {
+        alert('الرجاء إدخال رابط صحيح');
+        return;
+    }
+    
+    // Sanitize inputs
+    const sanitizedIcon = sanitizeText(icon) || '🔗';
+    const sanitizedText = sanitizeText(text);
+    const sanitizedUrl = sanitizeUrl(url);
+    
     linksData.push({
-        icon: icon || '🔗',
-        text: text,
-        url: url
+        icon: sanitizedIcon,
+        text: sanitizedText,
+        url: sanitizedUrl
     });
     
     // Clear inputs
@@ -130,14 +213,29 @@ function deleteLink(index) {
 
 // Save all changes
 function saveChanges() {
-    // Update profile data
-    profileData.name = document.getElementById('nameInput').value.trim() || 'اسم القناة';
-    profileData.bio = document.getElementById('bioInput').value.trim() || 'مرحباً! هذه صفحة روابطي الخاصة';
-    profileData.image = document.getElementById('imageInput').value.trim() || 'https://via.placeholder.com/120';
+    // Update profile data with sanitized inputs
+    const name = document.getElementById('nameInput').value.trim();
+    const bio = document.getElementById('bioInput').value.trim();
+    const image = document.getElementById('imageInput').value.trim();
+    
+    profileData.name = sanitizeText(name) || 'اسم القناة';
+    profileData.bio = sanitizeText(bio) || 'مرحباً! هذه صفحة روابطي الخاصة';
+    
+    // Validate image URL
+    if (image && isValidUrl(image)) {
+        profileData.image = sanitizeUrl(image);
+    } else {
+        profileData.image = 'https://via.placeholder.com/120';
+    }
     
     // Save to localStorage
-    localStorage.setItem('profileData', JSON.stringify(profileData));
-    localStorage.setItem('linksData', JSON.stringify(linksData));
+    try {
+        localStorage.setItem('profileData', JSON.stringify(profileData));
+        localStorage.setItem('linksData', JSON.stringify(linksData));
+    } catch (e) {
+        alert('حدث خطأ أثناء الحفظ');
+        return;
+    }
     
     // Reload UI
     loadProfile();
@@ -152,6 +250,9 @@ function saveChanges() {
 
 // Show notification
 function showNotification(message) {
+    // Sanitize message to prevent XSS
+    const sanitizedMessage = sanitizeText(message);
+    
     const notification = document.createElement('div');
     notification.style.cssText = `
         position: fixed;
@@ -166,7 +267,7 @@ function showNotification(message) {
         z-index: 10000;
         animation: slideDown 0.3s ease-out;
     `;
-    notification.textContent = message;
+    notification.textContent = sanitizedMessage;
     document.body.appendChild(notification);
     
     setTimeout(() => {
